@@ -89,7 +89,69 @@
     </p>
   </header>
 
-  <!-- MAIN CONTENT (you can replace this with your existing layout) -->
+  document.body.style.backgroundImage<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="East Tennessee local weather and radar" />
+  <title>East Tennessee Weather</title>
+
+  <style>
+  /* -------------------------------
+   GLOBAL + BACKGROUND
+--------------------------------*/
+  :root { --card-bg: rgba(0,0,0,0.55); --muted: #bbb; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: white;
+    min-height: 100vh;
+  }
+
+  /* -------------------------------
+   WEATHER CARD STYLE
+--------------------------------*/
+  .weather-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(6px);
+    padding: 16px;
+    border-radius: 14px;
+    margin: 20px auto;
+    width: 92%;
+    box-shadow: 0 0 12px rgba(0,0,0,0.4);
+  }
+
+  /* -------------------------------
+   BANNER (STORM TRACKER STYLE)
+--------------------------------*/
+  .etwn-banner.storm {
+    background: #111;
+    border-left: 6px solid #ffcc00;
+    padding: 16px;
+    border-radius: 8px;
+    margin: 20px auto;
+    width: 95%;
+    color: white;
+    box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .etwn-main {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: block;
+  }
+
+  .etwn-tag { font-size: 0.85rem; color: var(--muted); }
+
   <main>
     <div class="placeholder-box">
       <div class="section-title">Current Conditions</div>
