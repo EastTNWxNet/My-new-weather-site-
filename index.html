@@ -1,497 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="East Tennessee local weather and radar" />
-  <title>East Tennessee Weather</title>
+  <meta charset="UTF-8">
+  <title>East Tennessee Weather Net</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-  /* -------------------------------
-   GLOBAL + BACKGROUND
---------------------------------*/
-  :root { --card-bg: rgba(0,0,0,0.55); --muted: #bbb; }
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    color: white;
-    min-height: 100vh;
-  }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0b1020;
+      color: #f5f5f5;
+    }
 
-  /* -------------------------------
-   WEATHER CARD STYLE
---------------------------------*/
-  .weather-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(6px);
-    padding: 16px;
-    border-radius: 14px;
-    margin: 20px auto;
-    width: 92%;
-    box-shadow: 0 0 12px rgba(0,0,0,0.4);
-  }
+    /* Alert bar */
+    #alert-bar {
+      width: 100%;
+      background: #b30000;
+      color: #ffffff;
+      padding: 8px 0;
+      font-weight: bold;
+      font-size: 0.95rem;
+      display: none; /* hidden by default */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      z-index: 1000;
+    }
 
-  /* -------------------------------
-   BANNER (STORM TRACKER STYLE)
---------------------------------*/
-  .etwn-banner.storm {
-    background: #111;
-    border-left: 6px solid #ffcc00;
-    padding: 16px;
-    border-radius: 8px;
-    margin: 20px auto;
-    width: 95%;
-    color: white;
-    box-shadow: 0 0 12px rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+    #alert-bar.active {
+      display: block;
+    }
 
-  .etwn-main {
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    display: block;
-  }
+    #alert-label {
+      font-weight: 900;
+      margin-right: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-  .etwn-tag { font-size: 0.85rem; color: var(--muted); }
+    marquee {
+      white-space: nowrap;
+    }
 
-  /* -------------------------------
-   LIVE BADGE
---------------------------------*/
-  @keyframes livePulse {
-    0% { box-shadow: 0 0 6px rgba(255,0,0,0.4); }
-    50% { box-shadow: 0 0 12px rgba(255,0,0,0.9); }
-    100% { box-shadow: 0 0 6px rgba(255,0,0,0.4); }
-  }
+    /* Simple header placeholder */
+    header {
+      padding: 12px 16px;
+      background: #11172a;
+      border-bottom: 1px solid #222b3f;
+    }
 
-  .live-badge {
-    background: #e60000;
-    color: white;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    display: inline-block;
-    letter-spacing: 1px;
-    animation: livePulse 1.4s infinite;
-  }
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
 
-  /* -------------------------------
-   HOURLY FORECAST CONTAINER
---------------------------------*/
-  .hourly-container {
-    display: flex;
-    overflow-x: auto;
-    gap: 12px;
-    padding: 10px;
-    margin-top: 10px;
-    width: 96%;
-  }
+    main {
+      padding: 16px;
+    }
 
-  .hourly-container::-webkit-scrollbar { height: 6px; }
-  .hourly-container::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 3px;
-  }
+    .section-title {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #333c55;
+      padding-bottom: 4px;
+    }
 
-  /* -------------------------------
-   HOURLY ITEM
---------------------------------*/
-  .hour {
-    display: inline-block;
-    background: rgba(2, 6, 23, 0.8);
-    padding: 10px;
-    margin-right: 10px;
-    border-radius: 8px;
-    text-align: center;
-    width: 70px;
-    backdrop-filter: blur(4px);
-  }
-
-  .hour-time { font-size: 13px; opacity: 0.8; margin-bottom: 4px; }
-  .hour-temp { font-size: 18px; font-weight: bold; }
-  .hour-feels { font-size: 12px; opacity: 0.8; margin-top: 2px; }
-
-  .radar-btn {
-    margin-top: 20px;
-    padding: 12px 20px;
-    background: #1e40af;
-    color: white;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 18px;
-    font-weight: bold;
-    display: inline-block;
-    z-index: 10;
-  }
-
-  /* COLLAPSIBLE AFD SECTION */
-  .collapsible {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .collapsible.expanded { max-height: 3000px; }
-
-  .show-more-btn {
-    margin-top: 12px;
-    padding: 10px 16px;
-    background: #334155;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    z-index: 10;
-  }
-
-  #rainCanvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 2;
-    pointer-events: none;
-  }
-
-  .snow, .fog {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 3;
-  }
-
-  .snow {
-    background-image:
-      radial-gradient(circle, rgba(255,255,255,0.5) 0, rgba(255,255,255,0.5) 2px, transparent 3px);
-    background-size: 43px 42px;
-    animation: snow 18s linear infinite;
-    opacity: 0.55;
-  }
-
-  @keyframes snow {
-    0% { background-position: 0 -200px; }
-    50% { background-position: 40px 100px; }
-    100% { background-position: -20px 400px; }
-  }
-
-  .fog {
-    background: rgba(255,255,255,0.18);
-    backdrop-filter: blur(8px);
-    animation: fogMove 12s ease-in-out infinite alternate;
-  }
-
-  @keyframes fogMove {
-    from { transform: translateX(-20px); }
-    to { transform: translateX(20px); }
-  }
-
-  /* Responsive tweaks */
-  @media (min-width: 700px) {
-    .etwn-main { font-size: 1.5rem; }
-    .weather-card { width: 680px; }
-    .hourly-container { width: 680px; }
-  }
+    .placeholder-box {
+      background: #151b2e;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid #222b3f;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
-
 <body>
-  <div class="etwn-banner storm" role="banner" aria-label="East Tennessee Weather banner">
-    <span class="live-badge" aria-hidden="true">LIVE</span>
-    <div>
-      <div class="etwn-main">East Tennessee Weather Net</div>
-      <div class="etwn-tag">Powered by MRX • Local First</div>
+
+  <!-- LIVE ALERT BAR -->
+  <div id="alert-bar">
+    <span id="alert-label">⚠️ Alerts:</span>
+    <marquee id="alert-text" behavior="scroll" direction="left" scrollamount="4"></marquee>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <h1>East Tennessee Weather Net</h1>
+    <p style="margin: 4px 0 0; font-size: 0.85rem; color: #c3c8e0;">
+      Johnson City • Washington County, TN
+    </p>
+  </header>
+
+  <!-- MAIN CONTENT (you can replace this with your existing layout) -->
+  <main>
+    <div class="placeholder-box">
+      <div class="section-title">Current Conditions</div>
+      <p>Hook your existing current conditions / NOAA API here.</p>
     </div>
-  </div>
 
-  <canvas id="rainCanvas" aria-hidden="true"></canvas>
-
-  <div class="weather-card" aria-live="polite">
-    <div class="location">East Tennessee</div>
-    <div class="temp">--°F</div>
-    <div class="feels">Feels like --°F</div>
-    <div class="condition">Loading...</div>
-    <div class="updated">Updated --</div>
-  </div>
-
-  <!-- HOURLY FORECAST -->
-  <div class="hourly-container" aria-label="Hourly forecast"></div>
-
-  <!-- SHOW MORE BUTTON -->
-  <button class="show-more-btn" onclick="toggleAFD()" aria-expanded="false" aria-controls="afd-section">
-    Show More
-  </button>
-
-  <!-- COLLAPSIBLE AFD SECTION -->
-  <div id="afd-section" class="collapsible">
-    <div class="afd-card" style="
-      background: rgba(2, 6, 23, 0.75);
-      padding: 16px;
-      border-radius: 12px;
-      width: 280px;
-      margin-top: 20px;
-      backdrop-filter: blur(6px);
-      white-space: pre-wrap;
-      font-size: 14px;
-      line-height: 1.4;
-    ">
-      <strong>Forecast Discussion</strong>
-      <div class="afd-text" style="margin-top: 10px; opacity: 0.85;">Loading...</div>
+    <div class="placeholder-box">
+      <div class="section-title">Forecast</div>
+      <p>Drop your forecast cards or grid here.</p>
     </div>
-  </div>
+  </main>
 
-  <div class="weather-card">
-    <h2>Live Radar – KMRX</h2>
-    <img
-      src="https://radar.weather.gov/ridge/standard/KMRX_loop.gif"
-      alt="KMRX Radar Loop"
-      style="width:100%; height:auto; border-radius:12px;"
-    />
-  </div>
-
-  <a class="radar-btn"
-     href="https://www.tropicaltidbits.com/analysis/models/?model=nam&region=us&pkg=mslp_pcpn"
-     target="_blank" rel="noopener noreferrer">
-    View NAM Radar
-  </a>
-
-  
-
-  <!-- FORECAST DISCUSSION TOGGLE -->
   <script>
-  function toggleAFD() {
-    const afd = document.getElementById("afd-section");
-    const btn = document.querySelector(".show-more-btn");
-    const expanded = afd.classList.toggle("expanded");
-    btn.textContent = expanded ? "Hide Forecast Discussion" : "Show Forecast Discussion";
-    btn.setAttribute("aria-expanded", expanded ? "true" : "false");
-  }
-  </script>
+    async function loadAlerts() {
+      // Washington County / Johnson City zone
+      const url = "https://api.weather.gov/alerts/active/zone/TNZ036";
 
-  <!-- RAIN ENGINE -->
-  <script>
-  const canvas = document.getElementById("rainCanvas");
-  const ctx = (canvas && canvas.getContext) ? canvas.getContext("2d") : null;
+      try {
+        const response = await fetch(url, {
+          headers: {
+            "Accept": "application/geo+json",
+            "User-Agent": "East Tennessee Weather Net (youremail@example.com)"
+          }
+        });
 
-  function resizeCanvas() {
-    if (!canvas) return;
-    // set internal pixel size for crispness on high-DPI screens
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(window.innerWidth * ratio);
-    canvas.height = Math.floor(window.innerHeight * ratio);
-    canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = window.innerHeight + "px";
-    if (ctx) ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  }
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
-
-  class Drop {
-    constructor() { this.reset(); }
-    reset() {
-      this.x = Math.random() * (canvas ? canvas.width : 800);
-      this.y = Math.random() * - (canvas ? canvas.height : 600);
-      this.radius = 1 + Math.random() * 2;
-      this.speed = 1 + Math.random() * 1.5;
-      this.length = 10 + Math.random() * 20;
-    }
-    update() {
-      this.y += this.speed;
-      if (canvas && this.y > canvas.height) this.reset();
-    }
-    draw() {
-      if (!ctx) return;
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
-      ctx.lineWidth = this.radius;
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x, this.y + this.length);
-      ctx.stroke();
-    }
-  }
-
-  const drops = [];
-  for (let i = 0; i < 120; i++) drops.push(new Drop());
-
-  let rainActive = false;
-  function animateRain() {
-    if (!ctx || !canvas) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drops.forEach(d => { d.update(); d.draw(); });
-    requestAnimationFrame(animateRain);
-  }
-
-  function startRain() {
-    if (!ctx || rainActive) return;
-    rainActive = true;
-    animateRain();
-  }
-  </script>
-
-  <!-- WEATHER + BACKGROUND LOGIC -->
-  <script>
-  function cToF(c) { return (c == null) ? null : (c * 9/5) + 32; }
-
-  function bgImageFor(desc) {
-    const d = (desc || "").toLowerCase();
-    if (d.includes("snow")) return "https://images.pexels.com/photos/688660/pexels-photo-688660.jpeg";
-    if (d.includes("thunder") || d.includes("storm")) return "https://images.pexels.com/photos/1114690/pexels-photo-1114690.jpeg";
-    if (d.includes("rain") || d.includes("shower") || d.includes("drizzle")) return "https://images.pexels.com/photos/110874/pexels-photo-110874.jpeg";
-    if (d.includes("fog") || d.includes("mist") || d.includes("haze")) return "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg";
-    if (d.includes("cloud")) return "https://images.pexels.com/photos/158163/clouds-cloudporn-weather-lookup-158163.jpeg";
-    if (d.includes("clear") || d.includes("sun")) return "https://images.pexels.com/photos/281260/pexels-photo-281260.jpeg";
-    return "https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg";
-  }
-
-  /* LIVE CONDITIONS */
-  fetch("https://api.weather.gov/stations/KTRI/observations/latest", {
-    headers: { "User-Agent": "EastTNWxNet (contact@example.com)" }
-  })
-    .then(res => {
-      if (!res.ok) throw new Error("Network response not ok");
-      return res.json();
-    })
-    .then(data => {
-      const obs = data.properties || {};
-
-      // temperature can be null; check before rounding
-      const tempC = obs.temperature && obs.temperature.value;
-      const tempF = tempC != null ? Math.round(cToF(tempC)) : null;
-      if (tempF != null) document.querySelector(".temp").textContent = tempF + "°F";
-
-      const desc = obs.textDescription || "Unknown";
-      document.querySelector(".condition").textContent = desc;
-
-      const time = obs.timestamp ? new Date(obs.timestamp) : null;
-      if (time) {
-        const tStr = time.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-        document.querySelector(".updated").textContent = "Updated " + tStr;
-      }
-
-      document.body.style.backgroundImage = "url('" + bgImageFor(desc) + "')";
-      const d = desc.toLowerCase();
-      if (d.includes("rain") || d.includes("shower") || d.includes("drizzle")) startRain();
-      else if (d.includes("snow")) {
-        const layer = document.createElement("div");
-        layer.className = "snow";
-        document.body.appendChild(layer);
-      } else if (d.includes("fog") || d.includes("mist") || d.includes("haze")) {
-        const layer = document.createElement("div");
-        layer.className = "fog";
-        document.body.appendChild(layer);
-      }
-
-      // return gridpoint summary to get apparent temp
-      return fetch("https://api.weather.gov/gridpoints/MRX/126,72");
-    })
-    .then(res => {
-      if (!res || !res.ok) throw new Error("Grid fetch failed");
-      return res.json();
-    })
-    .then(grid => {
-      const apparent = grid?.properties?.apparentTemperature?.values?.[0]?.value;
-      const feelsF = apparent != null ? Math.round(cToF(apparent)) : null;
-      if (feelsF != null) document.querySelector(".feels").textContent = "Feels like " + feelsF + "°F";
-    })
-    .catch(() => {
-      document.querySelector(".feels").textContent = "Feels like --°F";
-    });
-
-  /* HOURLY FORECAST */
-  fetch("https://api.weather.gov/gridpoints/MRX/126,72/forecast/hourly")
-    .then(res => {
-      if (!res.ok) throw new Error("Hourly fetch failed");
-      return res.json();
-    })
-    .then(data => {
-      const periods = data?.properties?.periods || [];
-      const container = document.querySelector(".hourly-container");
-      container.innerHTML = "";
-
-      periods.slice(0, 24).forEach(p => {
-        const hourDiv = document.createElement("div");
-        hourDiv.className = "hour";
-
-        const temp = p.temperature != null ? p.temperature : "--";
-        const feels = (p.apparentTemperature != null) ? Math.round(p.apparentTemperature) : temp;
-
-        // try to display time in local format; fallback to substring if needed
-        let time = "--:--";
-        try {
-          const dt = new Date(p.startTime);
-          time = dt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-        } catch (e) {
-          if (p.startTime && p.startTime.length >= 16) time = p.startTime.slice(11, 16);
+        if (!response.ok) {
+          console.error("NOAA alerts response not OK:", response.status);
+          hideAlertBar();
+          return;
         }
 
-        hourDiv.innerHTML = `
-          <div class="hour-time">${time}</div>
-          <div class="hour-temp">${temp}°</div>
-          <div class="hour-feels">Feels ${feels}°</div>
-          <div class="hour-icon" title="${p.shortForecast}">${p.shortForecast}</div>
-        `;
+        const data = await response.json();
 
-        container.appendChild(hourDiv);
-      });
-    })
-    .catch(() => {
-      const container = document.querySelector(".hourly-container");
-      container.innerHTML = "<div style='opacity:.8;padding:12px'>Hourly forecast unavailable.</div>";
-    });
+        if (!data.features || data.features.length === 0) {
+          hideAlertBar();
+          return;
+        }
 
-  /* FORECAST DISCUSSION */
-  fetch("https://api.weather.gov/products/types/AFD/locations/MRX")
-    .then(res => {
-      if (!res.ok) throw new Error("AFD list fetch failed");
-      return res.json();
-    })
-    .then(list => {
-      const items = list?.["@graph"] || [];
-      if (!items || items.length === 0) {
-        document.querySelector(".afd-text").textContent = "No forecast discussion available.";
-        return;
+        const alerts = data.features.map(feature => {
+          const props = feature.properties;
+          const event = props.event || "Weather Alert";
+          const severity = props.severity || "Unknown severity";
+          const urgency = props.urgency || "Unknown urgency";
+          const headline = props.headline || "";
+          let desc = props.description || "";
+
+          // Clean up description for marquee
+          desc = desc.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
+
+          return `${event} — ${severity} — ${urgency} — ${headline} ${desc}`;
+        });
+
+        const alertText = alerts.join("   ⚠️   ");
+
+        const alertBar = document.getElementById("alert-bar");
+        const alertTextEl = document.getElementById("alert-text");
+
+        alertTextEl.textContent = alertText;
+        alertBar.classList.add("active");
+
+      } catch (error) {
+        console.error("Error fetching NOAA alerts:", error);
+        hideAlertBar();
       }
+    }
 
-      const latest = items[0]["@id"];
-      return fetch(latest);
-    })
-    .then(res => {
-      if (!res || !res.ok) throw new Error("AFD fetch failed");
-      return res.json();
-    })
-    .then(data => {
-      const text = data?.productText || "Unable to load discussion.";
-      document.querySelector(".afd-text").textContent = text;
-    })
-    .catch(() => {
-      document.querySelector(".afd-text").textContent = "Unable to load discussion.";
-    });
+    function hideAlertBar() {
+      const alertBar = document.getElementById("alert-bar");
+      alertBar.classList.remove("active");
+    }
+
+    // Load immediately and refresh every 2 minutes
+    loadAlerts();
+    setInterval(loadAlerts, 120000);
   </script>
-
-  <script>
-  window.intercomSettings = {
-    api_base: "https://api-iam.intercom.io",
-    app_id: "aq05csjg",
-  };
-</script>
-
-
-<script>
-  // We pre-filled your app ID in the widget URL: 'https://widget.intercom.io/widget/aq05csjg'
-  (function(){var w=window;var ic=w.Intercom;if(typeof ic==="function"){ic('reattach_activator');ic('update',w.intercomSettings);}else{var d=document;var i=function(){i.c(arguments);};i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;var l=function(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/aq05csjg';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);};if(document.readyState==='complete'){l();}else if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}})();
-</script>
 </body>
 </html>
