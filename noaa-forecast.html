@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NOAA Forecast – Johnson City, TN</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a0a0a;
+      color: #eaeaea;
+      padding: 20px;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 { color: #7fc8ff; }
+    pre {
+      white-space: pre-wrap;
+      background: #111;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Live NOAA Forecast – Johnson City, TN</h1>
+<p>This page converts NOAA API data into plain text so DocsBot can read it.</p>
+
+<h2>Full Forecast</h2>
+<pre id="fullForecast">Loading...</pre>
+
+<h2>Hourly Forecast (First 12 Hours)</h2>
+<pre id="hourlyForecast">Loading...</pre>
+
+<h2>Forecast Discussion (AFD)</h2>
+<pre id="afdText">Loading...</pre>
+
+<script>
+// Fetch full forecast
+fetch("https://api.weather.gov/gridpoints/MRX/126,72/forecast")
+  .then(r => r.json())
+  .then(data => {
+    const periods = data.properties.periods || [];
+    let text = "";
+    periods.forEach(p => {
+      text += `${p.name}: ${p.detailedForecast}\n\n`;
+    });
+    document.getElementById("fullForecast").textContent = text.trim();
+  })
+  .catch(() => {
+    document.getElementById("fullForecast").textContent = "Unable to load forecast.";
+  });
+
+// Fetch hourly forecast
+fetch("https://api.weather.gov/gridpoints/MRX/126,72/forecast/hourly")
+  .then(r => r.json())
+  .then(data => {
+    const periods = data.properties.periods.slice(0, 12);
+    let text = "";
+    periods.forEach(p => {
+      text += `${p.startTime}: ${p.temperature}°F, ${p.shortForecast}\n`;
+    });
+    document.getElementById("hourlyForecast").textContent = text.trim();
+  })
+  .catch(() => {
+    document.getElementById("hourlyForecast").textContent = "Unable to load hourly forecast.";
+  });
+
+// Fetch AFD
+fetch("https://api.weather.gov/products/types/AFD/locations/MRX")
+  .then(r => r.json())
+  .then(list => {
+    const latest = list["@graph"][0]["@id"];
+    return fetch(latest);
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById("afdText").textContent =
+      data.productText || "No AFD available.";
+  })
+  .catch(() => {
+    document.getElementById("afdText").textContent = "Unable to load AFD.";
+  });
+</script>
+
+</body>
+</html>
