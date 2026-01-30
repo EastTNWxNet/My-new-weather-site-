@@ -89,34 +89,7 @@
     </p>
   </header>
 
-  document.body.style.backgroundImage<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="East Tennessee local weather and radar" />
-  <title>East Tennessee Weather</title>
-
-  <style>
-  /* -------------------------------
-   GLOBAL + BACKGROUND
---------------------------------*/
-  :root { --card-bg: rgba(0,0,0,0.55); --muted: #bbb; }
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    color: white;
-    min-height: 100vh;
-  }
-
-  /* -------------------------------
-   WEATHER CARD STYLE
---------------------------------*/
-  .weather-card {
+  document.body.style.backgroundImage<
     background: var(--card-bg);
     backdrop-filter: blur(6px);
     padding: 16px;
@@ -153,79 +126,3 @@
   .etwn-tag { font-size: 0.85rem; color: var(--muted); }
 
   <main>
-    <div class="placeholder-box">
-      <div class="section-title">Current Conditions</div>
-      <p>Hook your existing current conditions / NOAA API here.</p>
-    </div>
-
-    <div class="placeholder-box">
-      <div class="section-title">Forecast</div>
-      <p>Drop your forecast cards or grid here.</p>
-    </div>
-  </main>
-
-  <script>
-    async function loadAlerts() {
-      // Washington County / Johnson City zone
-      const url = "https://api.weather.gov/alerts/active?zone=TNC179";
-
-      try {
-        const response = await fetch(url, {
-          headers: {
-            "Accept": "application/geo+json",
-            "User-Agent": "East Tennessee Weather Net (youremail@example.com)"
-          }
-        });
-
-        if (!response.ok) {
-          console.error("NOAA alerts response not OK:", response.status);
-          hideAlertBar();
-          return;
-        }
-
-        const data = await response.json();
-
-        if (!data.features || data.features.length === 0) {
-          hideAlertBar();
-          return;
-        }
-
-        const alerts = data.features.map(feature => {
-          const props = feature.properties;
-          const event = props.event || "Weather Alert";
-          const severity = props.severity || "Unknown severity";
-          const urgency = props.urgency || "Unknown urgency";
-          const headline = props.headline || "";
-          let desc = props.description || "";
-
-          // Clean up description for marquee
-          desc = desc.replace(/\n+/g, " ").replace(/\s+/g, " ").trim();
-
-          return `${event} — ${severity} — ${urgency} — ${headline} ${desc}`;
-        });
-
-        const alertText = alerts.join("   ⚠️   ");
-
-        const alertBar = document.getElementById("alert-bar");
-        const alertTextEl = document.getElementById("alert-text");
-
-        alertTextEl.textContent = alertText;
-        alertBar.classList.add("active");
-
-      } catch (error) {
-        console.error("Error fetching NOAA alerts:", error);
-        hideAlertBar();
-      }
-    }
-
-    function hideAlertBar() {
-      const alertBar = document.getElementById("alert-bar");
-      alertBar.classList.remove("active");
-    }
-
-    // Load immediately and refresh every 2 minutes
-    loadAlerts();
-    setInterval(loadAlerts, 120000);
-  </script>
-</body>
-</html>
