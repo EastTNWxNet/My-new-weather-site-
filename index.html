@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>East Tennessee Weather</title>
+  <body>
+    <style>
+  /* -------------------------------
+   GLOBAL + BACKGROUND
+--------------------------------*/
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: white;
+}
+
+/* -------------------------------
+   WEATHER CARD STYLE
+--------------------------------*/
+.weather-card {
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  padding: 16px;
+  border-radius: 14px;
+  margin: 20px auto;
+  width: 92%;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+/* -------------------------------
+   BANNER (STORM TRACKER STYLE)
+--------------------------------*/
+.etwn-banner.storm {
+  background: #111;
+  border-left: 6px solid #ffcc00;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 20px auto;
+  width: 95%;
+  color: white;
+  box-shadow: 0 0 12px rgba(0,0,0,0.5);
+}
+
+.etwn-main {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.etwn-tag {
+  font-size: 0.85rem;
+  color: #bbb;
+  margin-top: 4px;
+  display: block;
+}
+
+/* -------------------------------
+   LIVE BADGE
+--------------------------------*/
+@keyframes livePulse {
+  0% { box-shadow: 0 0 6px rgba(255,0,0,0.4); }
+  50% { box-shadow: 0 0 12px rgba(255,0,0,0.9); }
+  100% { box-shadow: 0 0 6px rgba(255,0,0,0.4); }
+}
+
+.live-badge {
+  background: #e60000;
+  color: white;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  display: inline-block;
+  letter-spacing: 1px;
+  animation: livePulse 1.4s infinite;
+}
+
+/* -------------------------------
+   HOURLY FORECAST CONTAINER
+--------------------------------*/
+.hourly-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.hourly-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hourly-container::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 3px;
+}
+
+/* -------------------------------
+   HOURLY ITEM
+--------------------------------*/
+    .hour {
+      display: inline-block;
+      background: rgba(2, 6, 23, 0.8);
+      padding: 10px;
+      margin-right: 10px;
+      border-radius: 8px;
+      text-align: center;
+      width: 70px;
+      backdrop-filter: blur(4px);
+    }
+
+    .hour-time { font-size: 13px; opacity: 0.8; margin-bottom: 4px; }
+    .hour-temp { font-size: 18px; font-weight: bold; }
+    .hour-feels { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+    .radar-btn {
+      margin-top: 20px;
+      padding: 12px 20px;
+      background: #1e40af;
+      color: white;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: bold;
+      display: inline-block;
+      z-index: 10;
+    }
+
+    /* COLLAPSIBLE AFD SECTION */
+    .collapsible {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .collapsible.expanded {
+      max-height: 3000px;
+    }
+
+    .show-more-btn {
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: #334155;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    #rainCanvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .snow, .fog {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .snow {
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.5) 0, rgba(255,255,255,0.5) 2px, transparent 3px);
+  background-size: 43px 42px;   /* bigger spacing = fewer flakes */
+  animation: snow 18s linear infinite; /* slower fall */
+  opacity: 0.55;                /* softer, less noisy */
+}
+
+   @keyframes snow {
+  0% {
+    background-position: 0 -200px;
+  }
+  50% {
+    background-position: 40px 100px; /* slight sideways drift */
+  }
+  100% {
+    background-position: -20px 400px; /* drift back the other way */
+  }
+}
+  
+
+    .fog {
+      background: rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      animation: fogMove 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes fogMove {
+      from { transform: translateX(-20px); }
+      to { transform: translateX(20px); }
+    }
+  </style>
+</head>
+<body>
+<div class="etwn-banner storm">
+  <span class="live-badge">LIVE</span>
+  <span class="etwn-main">East Tennessee Weather Net</span>
+  <span class="etwn-tag">Powered by MRX • Local First</span>
+</div>
+
+<canvas id="rainCanvas"></canvas>
+
+<div class="weather-card">
+  <div class="location">East Tennessee</div>
+  <div class="temp">--°F</div>
+  <div class="feels">Feels like --°F</div>
+  <div class="condition">Loading...</div>
+  <div class="updated">Updated --</div>
+</div>
+
+<!-- HOURLY FORECAST -->
+<div class="hourly-container"></div>
+
+<!-- SHOW MORE BUTTON -->
+<button class="show-more-btn" onclick="toggleAFD()">Show More</button>
+
+<!-- COLLAPSIBLE AFD SECTION -->
+<div id="afd-section" class="collapsible">
+  <div class="afd-card" style="
+    background: rgba(2, 6, 23, 0.75);
+    padding: 16px;
+    border-radius: 12px;
+    width: 280px;
+    margin-top: 20px;
+    backdrop-filter: blur(6px);
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.4;
+  ">
+    <strong>Forecast Discussion</strong>
+    <div class="afd-text" style="margin-top: 10px; opacity: 0.85;">Loading...</div>
+  </div>
+</div>
+
+<div class="weather-card">
+  <h2>Live Radar – KMRX</h2>
+  <img 
+    src="https://radar.weather.gov/ridge/standard/KMRX_loop.gif"
+    alt="KMRX Radar Loop"
+    style="width:100%; height:auto; border-radius:12px;"
+  >
+</div>
+
+<a class="radar-btn"
+   href="https://www.tropicaltidbits.com/analysis/models/?model=nam&region=us&pkg=mslp_pcpn"
+   target="_blank">
+  View NAM Radar
+</a>
+
+<!-- DOCSBOT EMBEDDED CHAT WINDOW -->
+<iframe 
+  src="https://docsbot.ai/iframe/qvmFPbbUg1frTy7oK9Dv/Y5ZNhyT22JcpSn1byZGL"
+  width="600"
+  height="650"
+  frameborder="0"
+  allowtransparency="true"
+  scrolling="no">
+</iframe>
+
+<!-- FORECAST DISCUSSION TOGGLE -->
+<script>
+function toggleAFD() {
+  const afd = document.getElementById("afd-section");
+  const btn = document.querySelector(".show-more-btn");
+
+  afd.classList.toggle("expanded");
+
+  btn.textContent = afd.classList.contains("expanded")
+    ? "Hide Forecast Discussion"
+    : "Show Forecast Discussion";
+}
+</script>
+
+<!-- RAIN ENGINE -->
+<script>
+const canvas = document.getElementById("rainCanvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+class Drop {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * -canvas.height;
+    this.radius = 2 + Math.random() * 3;
+    this.speed = 1 + Math.random() * 1.5;
+    this.length = 10 + Math.random() * 20;
+  }
+  update() {
+    this.y += this.speed;
+    if (this.y > canvas.height) this.reset();
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    ctx.lineWidth = this.radius;
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x, this.y + this.length);
+    ctx.stroke();
+  }
+}
+
+const drops = [];
+for (let i = 0; i < 120; i++) drops.push(new Drop());
+
+function animateRain() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drops.forEach(d => { d.update(); d.draw(); });
+  requestAnimationFrame(animateRain);
+}
+
+let rainActive = false;
+function startRain() {
+  if (!rainActive) { rainActive = true; animateRain(); }
+}
+</script>
+
+<!-- WEATHER + BACKGROUND LOGIC -->
+<script>
+function cToF(c) { return c == null ? null : c * 9/5 + 32; }
+
+function bgImageFor(desc) {
+  const d = (desc || "").toLowerCase();
+  if (d.includes("snow")) return "https://images.pexels.com/photos/688660/pexels-photo-688660.jpeg";
+  if (d.includes("thunder") || d.includes("storm")) return "https://images.pexels.com/photos/1114690/pexels-photo-1114690.jpeg";
+  if (d.includes("rain") || d.includes("shower") || d.includes("drizzle")) return "https://images.pexels.com/photos/110874/pexels-photo-110874.jpeg";
+  if (d.includes("fog") || d.includes("mist") || d.includes("haze")) return "https://images.pexels.com/photos/167699/pexels-photo-167699.jpeg";
+  if (d.includes("cloud")) return "https://images.pexels.com/photos/158163/clouds-cloudporn-weather-lookup-158163.jpeg";
+  if (d.includes("clear") || d.includes("sun")) return "https://images.pexels.com/photos/281260/pexels-photo-281260.jpeg";
+  return "https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg";
+}
+
+function addAnimationLayer(className) {
+  const layer = document.createElement("div");
+  layer.className = className;
+  document.body.appendChild(layer);
+}
+
+/* LIVE CONDITIONS */
+fetch("https://api.weather.gov/stations/KTRI/observations/latest", {
+  headers: { "User-Agent": "Brennon Barnett (barnettbrennon3@gmail.com)" }
+})
+  .then(res => res.json())
+  .then(data => {
+    const obs = data.properties;
+
+    const tempF = Math.round(cToF(obs.temperature.value));
+    document.querySelector(".temp").textContent = tempF + "°F";
+
+    const desc = obs.textDescription || "Unknown";
+    document.querySelector(".condition").textContent = desc;
+
+    const time = obs.timestamp ? new Date(obs.timestamp) : null;
+    if (time) {
+      const tStr = time.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      document.querySelector(".updated").textContent = "Updated " + tStr;
+    }
+
+    document.body.style.backgroundImage = "url('" + bgImageFor(desc) + "')";
+    const d = desc.toLowerCase();
+    if (d.includes("rain") || d.includes("shower") || d.includes("drizzle")) startRain();
+    else if (d.includes("snow")) addAnimationLayer("snow");
+    else if (d.includes("fog") || d.includes("mist") || d.includes("haze")) addAnimationLayer("fog");
+
+    return fetch("https://api.weather.gov/gridpoints/MRX/126,72");
+  })
+  .then(res => res.json())
+  .then(grid => {
+    const apparent = grid.properties.apparentTemperature.values[0].value;
+    const feelsF = Math.round(cToF(apparent));
+    document.querySelector(".feels").textContent = "Feels like " + feelsF + "°F";
+  })
+  .catch(() => {
+    document.querySelector(".feels").textContent = "Feels like --°F";
+  });
+
+/* HOURLY FORECAST */
+fetch("https://api.weather.gov/gridpoints/MRX/126,72/forecast/hourly")
+  .then(res => res.json())
+  .then(data => {
+    const periods = data.properties?.periods || [];
+    const container = document.querySelector(".hourly-container");
+    container.innerHTML = "";
+
+    periods.slice(0, 24).forEach(p => {
+      const hourDiv = document.createElement("div");
+      hourDiv.className = "hour";
+
+      const temp = p.temperature;
+      const feels = p.apparentTemperature != null
+        ? Math.round(p.apparentTemperature)
+        : temp;
+
+      const time = p.startTime.slice(11, 16);
+
+      hourDiv.innerHTML = `
+        <div class="hour-time">${time}</div>
+        <div class="hour-temp">${temp}°</div>
+        <div class="hour-feels">Feels ${feels}°</div>
+        <div class="hour-icon">${p.shortForecast}</div>
+      `;
+
+      container.appendChild(hourDiv);
+    });
+  });
+
+/* FORECAST DISCUSSION */
+fetch("https://api.weather.gov/products/types/AFD/locations/MRX")
+  .then(res => res.json())
+  .then(list => {
+    const items = list["@graph"];
+    if (!items || items.length === 0) {
+      document.querySelector(".afd-text").textContent =
+        "No forecast discussion available.";
+      return;
+    }
+
+    const latest = items[0]["@id"];
+    return fetch(latest);
+  })
+  .then(res => res.json())
+  .then(data => {
+    const text = data.productText || "Unable to load discussion.";
+    document.querySelector(".afd-text").textContent = text;
+  })
+  .catch(() => {
+    document.querySelector(".afd-text").textContent =
+      "Unable to load discussion.";
+  });
+</script>
+
+<!-- LOAD DOCSBOT LAST -->
+<script src="https://cdn.docsbot.ai/chat.js" data-bot-id="qvmFPbbUg1frTy7oK9Dv"></script>
+
+</body>
+</html>
