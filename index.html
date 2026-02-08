@@ -1,128 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>East Tennessee Weather Net</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #0b1020;
-      color: #f5f5f5;
-    }
-
-    /* Alert bar */
-    #alert-bar {
-      width: 100%;
-      background: #b30000;
-      color: #ffffff;
-      padding: 8px 0;
-      font-weight: bold;
-      font-size: 0.95rem;
-      display: none; /* hidden by default */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-      z-index: 1000;
-    }
-
-    #alert-bar.active {
-      display: block;
-    }
-
-    #alert-label {
-      font-weight: 900;
-      margin-right: 8px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    marquee {
-      white-space: nowrap;
-    }
-
-    /* Simple header placeholder */
-    header {
-      padding: 12px 16px;
-      background: #11172a;
-      border-bottom: 1px solid #222b3f;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 1.3rem;
-    }
-
-    main {
-      padding: 16px;
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-      margin-bottom: 8px;
-      border-bottom: 1px solid #333c55;
-      padding-bottom: 4px;
-    }
-
-    .placeholder-box {
-      background: #151b2e;
-      border-radius: 6px;
-      padding: 12px;
-      border: 1px solid #222b3f;
-      margin-bottom: 12px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My New Weather Site</title>
+    <!-- Add your other head elements here -->
 </head>
 <body>
-
-  <!-- LIVE ALERT BAR -->
-  <div id="alert-bar">
-    <span id="alert-label">⚠️ Alerts:</span>
-    <marquee id="alert-text" behavior="scroll" direction="left" scrollamount="4"></marquee>
-  </div>
-
-  <!-- HEADER -->
-  <header>
-    <h1>East Tennessee Weather Net</h1>
-    <p style="margin: 4px 0 0; font-size: 0.85rem; color: #c3c8e0;">
-      Johnson City • Washington County, TN
-    </p>
-  </header>
-
-  document.body.style.backgroundImage<
-    background: var(--card-bg);
-    backdrop-filter: blur(6px);
-    padding: 16px;
-    border-radius: 14px;
-    margin: 20px auto;
-    width: 92%;
-    box-shadow: 0 0 12px rgba(0,0,0,0.4);
-  }
-
-  /* -------------------------------
-   BANNER (STORM TRACKER STYLE)
---------------------------------*/
-  .etwn-banner.storm {
-    background: #111;
-    border-left: 6px solid #ffcc00;
-    padding: 16px;
-    border-radius: 8px;
-    margin: 20px auto;
-    width: 95%;
-    color: white;
-    box-shadow: 0 0 12px rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .etwn-main {
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    display: block;
-  }
-
-  .etwn-tag { font-size: 0.85rem; color: var(--muted); }
-
-  <main>
+    <div id="app">
+        <!-- Your existing content goes here -->
+    </div>
+    <script>
+        // Existing scripts
+    </script>
+    <!-- Graphite Integration Script -->
+    <script>
+        // Include your Graphite metrics tracking script here
+        (function() {
+            var _paq = window._paq = window._paq || [];
+            _paq.push(['trackPageView']);
+            _paq.push(['enableLinkTracking']);
+            var u="https://YOUR_GRAPHITE_URL/";
+            _paq.push(['setTrackerUrl', u+'matomo.php']);
+            _paq.push(['setSiteId', 'YOUR_SITE_ID']);
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.type='text/javascript'; g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+        })();
+    </script>
+</body>
+</html>
